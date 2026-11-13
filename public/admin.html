@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Admin</title>
+<style>:root{--bg:#08090D;--bg2:#111318;--lime:#B9FF65;--fg:#F2F0ED;--mut:#92939A}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;padding:20px}
+.w{max-width:900px;margin:auto}h1,h2{color:var(--lime);font-weight:700}h2{font-size:1.1rem;margin:0 0 12px}.c{background:var(--bg2);border:1px solid #23262e;border-radius:16px;padding:20px;margin-bottom:18px}
+label{display:block;font-size:.75rem;color:var(--mut);margin:10px 0 3px}input,textarea{width:100%;background:#08090D;border:1px solid #2a2d36;color:var(--fg);border-radius:10px;padding:10px;font:inherit}input:focus,textarea:focus{outline:0;border-color:var(--lime)}input[type=checkbox]{width:auto}
+button{background:none;border:1px solid var(--lime);color:var(--lime);padding:8px 16px;border-radius:99px;cursor:pointer;font:inherit}button:hover,.p{background:var(--lime);color:#08090D}.d{border-color:#ff5d5d;color:#ff5d5d}.d:hover{background:#ff5d5d;color:#fff}
+.it{border:1px solid #2a2d36;border-radius:12px;padding:14px;margin-bottom:12px}.bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.m{display:flex;gap:8px}.m input{flex:1}.tp{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5}#msg{color:var(--lime);margin-right:12px}
+#lg{max-width:360px;margin:20vh auto}</style></head><body><div class="w" id="app"></div><script>
+const S={site:['Website Settings',[['title'],['description'],['animations','b']]],profile:['Profile',[['name'],['identity'],['intro','t'],['location'],['availability'],['skills'],['philosophy','t'],['avatar','m'],['heroBg','m']]],anime:['Anime Portal',[['title'],['text','t'],['bg','m']]],join:['Join Section',[['title'],['text','t'],['button'],['url']]]};
+const L={projects:['Projects',[['title'],['category'],['description','t'],['stack'],['live'],['github'],['image','m']],{title:'New project'}],songs:['Music Playlist',[['title'],['artist'],['src','m'],['cover','m']],{title:'New song'}],socials:['Social Links',[['label'],['url']],{label:'New link'}]};
+const H={'Content-Type':'application/json','X-Requested-With':'admin'};let D;const app=document.getElementById('app');
+const api=(u,o={})=>fetch(u,{...o,headers:{...H,...(o.headers||{})}});
+function fld(o,f,k,s){const[n,t]=f,id=Math.random();let h=`<label>${n}</label>`;
+if(t==='b')h+=`<input type=checkbox ${o[n]?'checked':''} data-k=1>`;else if(t==='t')h+=`<textarea rows=3 data-k=1>${esc(o[n])}</textarea>`;else if(t==='m')h+=`<div class=m><input value="${esc(o[n])}" data-k=1 placeholder="URL or upload"><button type=button data-up=1>Upload</button></div>`;else h+=`<input value="${esc(o[n])}" data-k=1>`;
+const d=document.createElement('div');d.innerHTML=h;const inp=d.querySelector('[data-k]');inp.onchange=()=>o[n]=t==='b'?inp.checked:inp.value;
+const up=d.querySelector('[data-up]');if(up)up.onclick=()=>{const fi=document.createElement('input');fi.type='file';fi.accept='image/*,video/mp4,video/webm,audio/*';fi.onchange=async()=>{const f=fi.files[0];if(!f)return;up.textContent='Uploading…';const r=await fetch('/api/admin/upload?ext='+encodeURIComponent(f.name.split('.').pop()),{method:'POST',headers:{'X-Requested-With':'admin'},body:f});const j=await r.json();if(j.url){o[n]=j.url;inp.value=j.url}else alert(j.error);up.textContent='Upload'};fi.click()};return d}
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function render(){app.innerHTML=`<div class=tp><h1 style="margin:0">Control Center</h1><div><span id=msg></span><button class=p id=sv>Save all</button> <button id=lo>Logout</button></div></div>`;
+for(const k in S){const c=el(`<div class=c><h2>${S[k][0]}</h2></div>`);S[k][1].forEach(f=>c.append(fld(D[k],f)));app.append(c)}
+for(const k in L){const[t,fs,def]=L[k],c=el(`<div class=c><h2>${t}</h2></div>`);D[k].forEach((o,i)=>{const it=el('<div class=it></div>');fs.forEach(f=>it.append(fld(o,f)));
+const b=el('<div class=bt></div>');[['↑',-1],['↓',1]].forEach(([l,dd])=>{const x=el(`<button>${l}</button>`);x.onclick=()=>{const j=i+dd;if(j<0||j>=D[k].length)return;[D[k][i],D[k][j]]=[D[k][j],D[k][i]];render()};b.append(x)});
+const x=el('<button class=d>Delete</button>');x.onclick=()=>{if(confirm('Delete?')){D[k].splice(i,1);render()}};b.append(x);it.append(b);c.append(it)});
+const a=el('<button>+ Add</button>');a.onclick=()=>{D[k].push({...def});render()};c.append(a);app.append(c)}
+document.getElementById('sv').onclick=async()=>{const r=await api('/api/admin/content',{method:'PUT',body:JSON.stringify(D)});const m=document.getElementById('msg');m.textContent=r.ok?'Saved ✓':'Save failed';setTimeout(()=>m.textContent='',2500)};
+document.getElementById('lo').onclick=async()=>{await api('/api/admin/logout',{method:'POST'});login()}}
+const el=h=>{const d=document.createElement('div');d.innerHTML=h;return d.firstChild};
+function login(msg=''){app.innerHTML=`<div class=c id=lg><h2>ADMIN ACCESS</h2><label>Password</label><input type=password id=pw autofocus><p style="color:#ff5d5d">${msg}</p><button class=p id=go>Login</button></div>`;
+const go=async()=>{const r=await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:document.getElementById('pw').value})});if(r.ok)start();else login((await r.json()).error)};document.getElementById('go').onclick=go;document.getElementById('pw').onkeydown=e=>e.key==='Enter'&&go()}
+async function start(){const r=await api('/api/admin/me');if(!r.ok)return login();D=await (await fetch('/api/content')).json();render()}start();
+</script></body></html>
