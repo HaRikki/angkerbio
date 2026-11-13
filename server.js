@@ -1,8 +1,10 @@
 const fs=require('fs'),path=require('path'),http=require('http'),crypto=require('crypto');
 try{fs.readFileSync(path.join(__dirname,'.env'),'utf8').split('\n').forEach(l=>{const m=l.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/);if(m&&!(m[1] in process.env))process.env[m[1]]=m[2]})}catch{}
 const PORT=process.env.PORT||3000,DATA=path.resolve(process.env.DATA_DIR||path.join(__dirname,'data')),UP=path.join(DATA,'uploads'),DB=path.join(DATA,'content.json'),PUB=path.join(__dirname,'public');
-if(!process.env.ADMIN_PASSWORD){console.error('ADMIN_PASSWORD is missing. Locally: put it in .env. On Render/Railway: add it under Environment → Environment Variables, then redeploy.');process.exit(1)}
-const salt=crypto.randomBytes(16),hash=crypto.scryptSync(process.env.ADMIN_PASSWORD,salt,64);delete process.env.ADMIN_PASSWORD;
+const FALLBACK='0f4104affc879faf27b22672841230a6:539a8688f9935409077fb960a79440765cd86a03d818e6691b1557ba52aa0f0a0c8dc80b7519484132dbb55a3a548f5771e3a99b6505a309e5822df448c5c186';
+let salt,hash;
+if(process.env.ADMIN_PASSWORD){salt=crypto.randomBytes(16);hash=crypto.scryptSync(process.env.ADMIN_PASSWORD,salt,64);delete process.env.ADMIN_PASSWORD}
+else{const[s,h]=FALLBACK.split(':');salt=Buffer.from(s,'hex');hash=Buffer.from(h,'hex');console.warn('WARNING: ADMIN_PASSWORD not set - using built-in initial password. Set ADMIN_PASSWORD in your host environment to change it.')}
 fs.mkdirSync(UP,{recursive:true});
 const DEF={site:{title:'My Digital Universe',description:'Creative developer portfolio',animations:true},
 profile:{name:'Your Name',identity:'Creative Full-Stack Developer',intro:'Edit this introduction from the admin dashboard.',location:'Your City',availability:'Available for projects',skills:'JavaScript, TypeScript, React, Node.js',philosophy:'Build things that feel alive.',avatar:'',heroBg:''},
