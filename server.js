@@ -1,7 +1,7 @@
 const fs=require('fs'),path=require('path'),http=require('http'),crypto=require('crypto');
 try{fs.readFileSync(path.join(__dirname,'.env'),'utf8').split('\n').forEach(l=>{const m=l.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/);if(m&&!(m[1] in process.env))process.env[m[1]]=m[2]})}catch{}
 const PORT=process.env.PORT||3000,DATA=path.resolve(process.env.DATA_DIR||path.join(__dirname,'data')),UP=path.join(DATA,'uploads'),DB=path.join(DATA,'content.json'),PUB=path.join(__dirname,'public');
-if(!process.env.ADMIN_PASSWORD){console.error('Set ADMIN_PASSWORD in .env');process.exit(1)}
+if(!process.env.ADMIN_PASSWORD){console.error('ADMIN_PASSWORD is missing. Locally: put it in .env. On Render/Railway: add it under Environment → Environment Variables, then redeploy.');process.exit(1)}
 const salt=crypto.randomBytes(16),hash=crypto.scryptSync(process.env.ADMIN_PASSWORD,salt,64);delete process.env.ADMIN_PASSWORD;
 fs.mkdirSync(UP,{recursive:true});
 const DEF={site:{title:'My Digital Universe',description:'Creative developer portfolio',animations:true},

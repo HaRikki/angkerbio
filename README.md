@@ -15,3 +15,8 @@ Security: sessions are HttpOnly + SameSite=Strict cookies, every /api/admin rout
 
 ## Storage
 Uploads (images, mp4/webm, audio; 200 MB max) go to DATA_DIR/uploads. For S3/R2, replace the upload handler in server.js; or paste any external URL into media fields.
+
+## Render quick steps
+1. New → Web Service → connect repo. Build: `npm install`  Start: `npm start`
+2. Environment → add `ADMIN_PASSWORD`, `NODE_ENV=production`, `TRUST_PROXY=1`, `DATA_DIR=/var/data`
+3. Disks → add a disk mounted at `/var/data` (paid plan). Without a disk, content/uploads reset on every deploy.
